@@ -17,6 +17,8 @@
 
 package net.yuzumone.cooperateddevice
 
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
@@ -29,5 +31,34 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
+        binding.button.setOnClickListener {
+            tryUsbTethering()
+        }
+    }
+
+    private fun tryUsbTethering() {
+        if (checkSu()) {
+            // for android 5.1.1
+            val command = arrayOf("su", "-c", "service call connectivity 31 i32 1")
+            val process = Runtime.getRuntime().exec(command)
+            process.waitFor()
+        } else {
+            openTetheringSetting()
+        }
+    }
+
+    private fun openTetheringSetting() {
+        val intent = Intent()
+        intent.setClassName("com.android.settings", "com.android.settings.TetherSettings")
+        startActivity(intent)
+    }
+
+    private fun checkSu(): Boolean {
+        try {
+            packageManager.getApplicationInfo("eu.chainfire.supersu", 0)
+        } catch (e: PackageManager.NameNotFoundException) {
+            return false
+        }
+        return true
     }
 }

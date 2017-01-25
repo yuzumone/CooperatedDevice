@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">CooperatedDevice</string>
+    <string name="connect">Connect</string>
 </resources>
