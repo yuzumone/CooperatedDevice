@@ -28,6 +28,10 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
 
+    companion object {
+        val regex = Regex("(([0-9a-f]{2}:){5}[0-9a-f]{2})")
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
@@ -42,9 +46,24 @@ class MainActivity : AppCompatActivity() {
             val command = arrayOf("su", "-c", "service call connectivity 31 i32 1")
             val process = Runtime.getRuntime().exec(command)
             process.waitFor()
+            val mac = obtainMacAddress()
+            binding.text.text = "MACAddress: $mac"
         } else {
             openTetheringSetting()
         }
+    }
+
+    private fun obtainMacAddress(): String {
+        var mac = ""
+        val command = arrayOf("ip", "link")
+        val process = Runtime.getRuntime().exec(command)
+        val result = process.inputStream.reader().use { it.readLines() }
+        try {
+            mac = regex.findAll(result.last()).single { it.value != "ff:ff:ff:ff:ff:ff" }.value
+        } catch (e: IllegalArgumentException) {
+            e.printStackTrace()
+        }
+        return mac
     }
 
     private fun openTetheringSetting() {
