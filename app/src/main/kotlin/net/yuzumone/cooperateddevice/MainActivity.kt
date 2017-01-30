@@ -22,11 +22,20 @@ import android.content.pm.PackageManager
 import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import android.widget.Toast
+import net.yuzumone.cooperateddevice.api.CooperatedClient
 import net.yuzumone.cooperateddevice.databinding.ActivityMainBinding
+import okhttp3.OkHttpClient
+import rx.Subscription
+import rx.android.schedulers.AndroidSchedulers
+import rx.schedulers.Schedulers
+import rx.subscriptions.CompositeSubscription
+import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+    private lateinit var compositeSubscription: CompositeSubscription
 
     companion object {
         val regex = Regex("(([0-9a-f]{2}:){5}[0-9a-f]{2})")
@@ -35,9 +44,17 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
-        binding.button.setOnClickListener {
+        binding.buttonTethering.setOnClickListener {
             tryUsbTethering()
         }
+        binding.buttonConnect.setOnClickListener {
+            val mac = obtainMacAddress()
+            val body = HashMap<String, String>()
+            body.put("mac", mac)
+            compositeSubscription.add(post(body))
+            binding.text.text = "MACAddress: $mac"
+        }
+        compositeSubscription = CompositeSubscription()
     }
 
     private fun tryUsbTethering() {
@@ -46,8 +63,6 @@ class MainActivity : AppCompatActivity() {
             val command = arrayOf("su", "-c", "service call connectivity 31 i32 1")
             val process = Runtime.getRuntime().exec(command)
             process.waitFor()
-            val mac = obtainMacAddress()
-            binding.text.text = "MACAddress: $mac"
         } else {
             openTetheringSetting()
         }
@@ -79,5 +94,25 @@ class MainActivity : AppCompatActivity() {
             return false
         }
         return true
+    }
+
+    private fun post(body: HashMap<String, String>): Subscription {
+        val client = CooperatedClient(OkHttpClient())
+        return client.postMac(body)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        { response ->
+                            Toast.makeText(this, response.result, Toast.LENGTH_SHORT).show()
+                        },
+                        { error ->
+                            Toast.makeText(this, error.message, Toast.LENGTH_SHORT).show()
+                        }
+                )
+    }
+
+    override fun onDestroy() {
+        compositeSubscription.unsubscribe()
+        super.onDestroy()
     }
 }
