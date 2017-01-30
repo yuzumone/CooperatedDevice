@@ -15,17 +15,25 @@
         >
 
         <Button
-            android:id="@+id/button"
+            android:id="@+id/button_tethering"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/tethering"
+            />
+
+        <Button
+            android:id="@+id/button_connect"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/connect"
+            android:layout_below="@id/button_tethering"
             />
 
         <TextView
             android:id="@+id/text"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_below="@+id/button"
+            android:layout_below="@+id/button_connect"
             />
     </RelativeLayout>
 </layout>
