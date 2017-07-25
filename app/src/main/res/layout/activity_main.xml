@@ -1,39 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     >
     <RelativeLayout
-        android:id="@+id/activity_main"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:paddingBottom="@dimen/activity_vertical_margin"
         android:paddingLeft="@dimen/activity_horizontal_margin"
         android:paddingRight="@dimen/activity_horizontal_margin"
         android:paddingTop="@dimen/activity_vertical_margin"
-        tools:context="net.yuzumone.cooperateddevice.MainActivity"
         >
 
-        <Button
-            android:id="@+id/button_tethering"
+        <TextView
+            android:id="@+id/text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/tethering"
+            android:text="MACAddress: "
             />
 
         <Button
             android:id="@+id/button_connect"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_below="@+id/text"
             android:text="@string/connect"
-            android:layout_below="@id/button_tethering"
-            />
-
-        <TextView
-            android:id="@+id/text"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_below="@+id/button_connect"
             />
     </RelativeLayout>
 </layout>
