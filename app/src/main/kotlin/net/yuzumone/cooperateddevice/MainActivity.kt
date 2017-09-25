@@ -17,7 +17,10 @@
 
 package net.yuzumone.cooperateddevice
 
+import android.content.Context
 import android.databinding.DataBindingUtil
+import android.net.wifi.WifiConfiguration
+import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import net.yuzumone.cooperateddevice.databinding.ActivityMainBinding
@@ -25,16 +28,27 @@ import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
-    lateinit private var binding: ActivityMainBinding
     private val regex = Regex("(([0-9a-f]{2}:){5}[0-9a-f]{2})")
+    lateinit private var binding: ActivityMainBinding
+    private val adapter: ConfigurationAdapter by lazy {
+        ConfigurationAdapter(this)
+    }
+    private val wifiManager: WifiManager by lazy {
+        getSystemService(Context.WIFI_SERVICE) as WifiManager
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
+        getConfiguredNetworks()
         binding.buttonConnect.setOnClickListener {
             enableUsbTethering()
             val mac = obtainMacAddress()
             binding.text.text = "MACAddress: $mac"
+        }
+        binding.list.setOnItemClickListener { parent, view, position, id ->
+            val configuration = adapter.getItem(position)
+            changeWifi(configuration)
         }
     }
 
@@ -58,5 +72,25 @@ class MainActivity : AppCompatActivity() {
             e.printStackTrace()
         }
         return mac
+    }
+
+    private fun getConfiguredNetworks() {
+        if (wifiManager.configuredNetworks != null) {
+            adapter.addAll(wifiManager.configuredNetworks)
+            adapter.notifyDataSetChanged()
+            binding.list.adapter = adapter
+        }
+    }
+
+    private fun changeWifi(configuration: WifiConfiguration) {
+        val info = wifiManager.connectionInfo
+        if (info.ssid == configuration.SSID) {
+            return
+        } else {
+            wifiManager.disableNetwork(info.networkId)
+            wifiManager.enableNetwork(info.networkId, false)
+        }
+        wifiManager.updateNetwork(configuration)
+        wifiManager.enableNetwork(configuration.networkId, true)
     }
 }
